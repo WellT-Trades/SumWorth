@@ -24,6 +24,7 @@ export default function App() {
   const [accountName, setAccountName] = useState('');
   const [accountBalance, setAccountBalance] = useState('');
   const [balancesHidden, setBalancesHidden] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
 
   const addAccount = () => {
     if (!accountName.trim() || !accountBalance.trim()) {
@@ -47,6 +48,12 @@ export default function App() {
     setAccounts([...accounts, newAccount]);
     setAccountName('');
     setAccountBalance('');
+  };
+
+  const startEdit = (account: Account) => {
+    setEditingId(account.id);
+    setAccountName(account.name);
+    setAccountBalance(String(account.balance));
   };
 
   const deleteAccount = (id: number) => {
@@ -127,6 +134,7 @@ export default function App() {
             key={account.id}
             account={account}
             hidden={balancesHidden}
+            onEdit={() => startEdit(account)}
             onDelete={() => confirmDelete(account)}
           />
         ))}
