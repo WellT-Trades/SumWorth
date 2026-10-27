@@ -29,37 +29,37 @@ export default function App() {
   const [accountBalance, setAccountBalance] = useState('');
   const [balancesHidden, setBalancesHidden] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [formError, setFormError] = useState('');
 
   const clearForm = () => {
     setEditingId(null);
     setAccountName('');
     setAccountNumber('');
     setAccountBalance('');
+    setFormError('');
   };
 
-    const saveAccount = () => {
+  const saveAccount = () => {
     const name = cleanName(accountName);
     const number = accountNumber.trim();
 
     if (!name || !accountBalance.trim()) {
-      alert('Please enter an account name and balance.');
+      setFormError('Please enter an account name and balance.');
       return;
     }
 
     if (number !== '' && !/^\d{4}$/.test(number)) {
-      alert('Account number must be exactly 4 digits, or left blank.');
+      setFormError('Account number must be exactly 4 digits, or left blank.');
       return;
     }
 
     const balance = Number(accountBalance);
 
     if (!Number.isFinite(balance) || balance < 0) {
-      alert('Please enter a valid, non-negative balance.');
+      setFormError('Please enter a valid, non-negative balance.');
       return;
     }
 
-    // Same name (ignoring case) AND same number = duplicate.
-    // When editing, skip the account being edited so it doesn't clash with itself.
     const isDuplicate = accounts.some(
       (account) =>
         account.id !== editingId &&
@@ -68,7 +68,7 @@ export default function App() {
     );
 
     if (isDuplicate) {
-      alert(
+      setFormError(
         number === ''
           ? 'You already have an account with this name. Add the last 4 digits to tell them apart.'
           : 'You already have an account with this name and number.'
@@ -102,6 +102,7 @@ export default function App() {
     setAccountName(account.name);
     setAccountNumber(account.accountNumber);
     setAccountBalance(String(account.balance));
+    setFormError('');
   };
 
   const deleteAccount = (id: number) => {
@@ -167,7 +168,10 @@ export default function App() {
         placeholder="Account name (e.g. FirstBank)"
         placeholderTextColor="#6f9aa1"
         value={accountName}
-        onChangeText={setAccountName}
+        onChangeText={(text) => {
+          setAccountName(text);
+          setFormError('');
+        }}
       />
 
       <TextInput
@@ -175,7 +179,10 @@ export default function App() {
         placeholder="Last 4 digits of account number (optional)"
         placeholderTextColor="#6f9aa1"
         value={accountNumber}
-        onChangeText={setAccountNumber}
+        onChangeText={(text) => {
+          setAccountNumber(text);
+          setFormError('');
+        }}
         keyboardType="numeric"
         maxLength={4}
       />
@@ -185,9 +192,14 @@ export default function App() {
         placeholder="Balance (e.g. 100000)"
         placeholderTextColor="#6f9aa1"
         value={accountBalance}
-        onChangeText={setAccountBalance}
+        onChangeText={(text) => {
+          setAccountBalance(text);
+          setFormError('');
+        }}
         keyboardType="numeric"
       />
+
+      {formError !== '' && <Text style={styles.error}>{formError}</Text>}
 
       <Button
         title={editingId === null ? 'Save Account' : 'Update Account'}
@@ -249,6 +261,13 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     color: '#ffffff',
     fontSize: 16,
+  },
+  error: {
+    width: '100%',
+    marginTop: 12,
+    marginBottom: 4,
+    fontSize: 14,
+    color: '#ff8a80',
   },
   list: { marginTop: 32, width: '100%' },
 });
