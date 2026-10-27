@@ -14,6 +14,9 @@ import AccountRow from './src/components/AccountRow';
 import { Account } from './src/types';
 import { formatMoney } from './src/utils/money';
 
+// Trim, collapse repeated spaces: "  First   Bank " -> "First Bank"
+const cleanName = (text: string) => text.trim().replace(/\s+/g, ' ');
+
 export default function App() {
   const [accounts, setAccounts] = useState<Account[]>([
     { id: 1, name: 'Opay', accountNumber: '', balance: 150000 },
@@ -34,13 +37,14 @@ export default function App() {
     setAccountBalance('');
   };
 
-  const saveAccount = () => {
-    if (!accountName.trim() || !accountBalance.trim()) {
+    const saveAccount = () => {
+    const name = cleanName(accountName);
+    const number = accountNumber.trim();
+
+    if (!name || !accountBalance.trim()) {
       alert('Please enter an account name and balance.');
       return;
     }
-
-    const number = accountNumber.trim();
 
     if (number !== '' && !/^\d{4}$/.test(number)) {
       alert('Account number must be exactly 4 digits, or left blank.');
@@ -54,23 +58,36 @@ export default function App() {
       return;
     }
 
+    // Same name (ignoring case) AND same number = duplicate.
+    // When editing, skip the account being edited so it doesn't clash with itself.
+    const isDuplicate = accounts.some(
+      (account) =>
+        account.id !== editingId &&
+        account.name.toLowerCase() === name.toLowerCase() &&
+        account.accountNumber === number
+    );
+
+    if (isDuplicate) {
+      alert(
+        number === ''
+          ? 'You already have an account with this name. Add the last 4 digits to tell them apart.'
+          : 'You already have an account with this name and number.'
+      );
+      return;
+    }
+
     if (editingId !== null) {
       setAccounts(
         accounts.map((account) =>
           account.id === editingId
-            ? {
-                ...account,
-                name: accountName.trim(),
-                accountNumber: number,
-                balance,
-              }
+            ? { ...account, name, accountNumber: number, balance }
             : account
         )
       );
     } else {
       const newAccount: Account = {
         id: Date.now(),
-        name: accountName.trim(),
+        name,
         accountNumber: number,
         balance,
       };
