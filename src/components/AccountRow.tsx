@@ -4,13 +4,16 @@ import { formatMoney } from '../utils/money';
 
 type Props = {
   account: Account;
+  hidden: boolean;
 };
 
-export default function AccountRow({ account }: Props) {
+export default function AccountRow({ account, hidden }: Props) {
   return (
     <View style={styles.row}>
       <Text style={styles.name}>{account.name}</Text>
-      <Text style={styles.balance}>{formatMoney(account.balance)}</Text>
+      <Text style={styles.balance}>
+        {hidden ? '₦••••••' : formatMoney(account.balance)}
+      </Text>
     </View>
   );
 }
