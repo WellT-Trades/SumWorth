@@ -18,11 +18,11 @@ import { formatMoney } from './src/utils/money';
 const cleanName = (text: string) => text.trim().replace(/\s+/g, ' ');
 
 export default function App() {
-  const [accounts, setAccounts] = useState<Account[]>([
-    { id: 1, name: 'Opay', accountNumber: '', balance: 150000 },
-    { id: 2, name: 'GTBank', accountNumber: '', balance: 250000 },
-    { id: 3, name: 'Kuda', accountNumber: '', balance: 50000 },
-    { id: 4, name: 'UBA', accountNumber: '', balance: 70000 },
+    const [accounts, setAccounts] = useState<Account[]>([
+    { id: 1, name: 'Opay', accountNumber: '1111', balance: 150000 },
+    { id: 2, name: 'GTBank', accountNumber: '2222', balance: 250000 },
+    { id: 3, name: 'Kuda', accountNumber: '3333', balance: 50000 },
+    { id: 4, name: 'UBA', accountNumber: '4444', balance: 70000 },
   ]);
   const [accountName, setAccountName] = useState('');
   const [accountNumber, setAccountNumber] = useState('');
@@ -43,13 +43,13 @@ export default function App() {
     const name = cleanName(accountName);
     const number = accountNumber.trim();
 
-    if (!name || !accountBalance.trim()) {
+        if (!name || !accountBalance.trim()) {
       setFormError('Please enter an account name and balance.');
       return;
     }
 
-    if (number !== '' && !/^\d{4}$/.test(number)) {
-      setFormError('Account number must be exactly 4 digits, or left blank.');
+    if (!/^\d{4}$/.test(number)) {
+      setFormError('Please enter the last 4 digits of the account number.');
       return;
     }
 
@@ -67,12 +67,8 @@ export default function App() {
         account.accountNumber === number
     );
 
-    if (isDuplicate) {
-      setFormError(
-        number === ''
-          ? 'You already have an account with this name. Add the last 4 digits to tell them apart.'
-          : 'You already have an account with this name and number.'
-      );
+       if (isDuplicate) {
+      setFormError('You already have an account with this name and number.');
       return;
     }
 
@@ -176,7 +172,7 @@ export default function App() {
 
       <TextInput
         style={styles.input}
-        placeholder="Last 4 digits of account number (optional)"
+        placeholder="Last 4 digits of account number"
         placeholderTextColor="#6f9aa1"
         value={accountNumber}
         onChangeText={(text) => {
