@@ -1,21 +1,53 @@
+import { useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { Button, StyleSheet, Text, TextInput, View } from 'react-native';
 import AccountRow from './src/components/AccountRow';
 import { Account } from './src/types';
 import { formatMoney } from './src/utils/money';
 
-const accounts: Account[] = [
-  { id: 1, name: 'Opay', balance: 150000 },
-  { id: 2, name: 'GTBank', balance: 250000 },
-  { id: 3, name: 'Kuda', balance: 50000 },
-  { id: 4, name: 'UBA', balance: 70000 }
-];
-
 export default function App() {
+  const [accounts, setAccounts] = useState<Account[]>([
+    { id: 1, name: 'Opay', balance: 150000 },
+    { id: 2, name: 'GTBank', balance: 250000 },
+    { id: 3, name: 'Kuda', balance: 50000 },
+    { id: 4, name: 'UBA', balance: 70000 },
+  ]);
+  const [accountName, setAccountName] = useState('');
+  const [accountBalance, setAccountBalance] = useState('');
+
+  const addAccount = () => {
+    // 1. Check the input first
+    if (!accountName.trim() || !accountBalance.trim()) {
+      alert('Please enter an account name and balance.');
+      return;
+    }
+
+    const balance = Number(accountBalance);
+
+    if (!Number.isFinite(balance) || balance < 0) {
+      alert('Please enter a valid, non-negative balance.');
+      return;
+    }
+
+    // 2. Only then build the account, with the name trimmed
+    const newAccount: Account = {
+      id: Date.now(),
+      name: accountName.trim(),
+      balance,
+    };
+
+    setAccounts([...accounts, newAccount]);
+    setAccountName('');
+    setAccountBalance('');
+  };
+
   const totalAvailable = accounts.reduce(
     (sum, account) => sum + account.balance,
     0
   );
+  const sortedAccounts = [...accounts].sort((a, b) =>
+  a.name.localeCompare(b.name)
+);
 
   return (
     <View style={styles.container}>
@@ -27,11 +59,30 @@ export default function App() {
       <Text style={styles.label}>TOTAL AVAILABLE MONEY</Text>
       <Text style={styles.total}>{formatMoney(totalAvailable)}</Text>
 
+      <TextInput
+        style={styles.input}
+        placeholder="Account name (e.g. FirstBank)"
+        placeholderTextColor="#6f9aa1"
+        value={accountName}
+        onChangeText={setAccountName}
+      />
+
+      <TextInput
+        style={styles.input}
+        placeholder="Balance (e.g. 100000)"
+        placeholderTextColor="#6f9aa1"
+        value={accountBalance}
+        onChangeText={setAccountBalance}
+        keyboardType="numeric"
+      />
+
+      <Button title="Save Account" onPress={addAccount} />
+
       <View style={styles.list}>
-        {accounts.map((account) => (
-          <AccountRow key={account.id} account={account} />
-        ))}
-      </View>
+  {sortedAccounts.map((account) => (
+    <AccountRow key={account.id} account={account} />
+  ))}
+</View>
 
       <StatusBar style="light" />
     </View>
@@ -60,5 +111,15 @@ const styles = StyleSheet.create({
     color: '#9fc6cc',
   },
   total: { marginTop: 4, fontSize: 40, fontWeight: '700', color: '#ffffff' },
+  input: {
+    width: '100%',
+    marginTop: 12,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#1f4a52',
+    borderRadius: 8,
+    color: '#ffffff',
+    fontSize: 16,
+  },
   list: { marginTop: 32, width: '100%' },
 });
