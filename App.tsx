@@ -26,7 +26,13 @@ export default function App() {
   const [balancesHidden, setBalancesHidden] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
 
-  const addAccount = () => {
+  const clearForm = () => {
+    setEditingId(null);
+    setAccountName('');
+    setAccountBalance('');
+  };
+
+  const saveAccount = () => {
     if (!accountName.trim() || !accountBalance.trim()) {
       alert('Please enter an account name and balance.');
       return;
@@ -39,15 +45,26 @@ export default function App() {
       return;
     }
 
-    const newAccount: Account = {
-      id: Date.now(),
-      name: accountName.trim(),
-      balance,
-    };
+    if (editingId !== null) {
+      // Editing: replace the matching account, keep all the others
+      setAccounts(
+        accounts.map((account) =>
+          account.id === editingId
+            ? { ...account, name: accountName.trim(), balance }
+            : account
+        )
+      );
+    } else {
+      // Adding: append a new account
+      const newAccount: Account = {
+        id: Date.now(),
+        name: accountName.trim(),
+        balance,
+      };
+      setAccounts([...accounts, newAccount]);
+    }
 
-    setAccounts([...accounts, newAccount]);
-    setAccountName('');
-    setAccountBalance('');
+    clearForm();
   };
 
   const startEdit = (account: Account) => {
@@ -58,6 +75,10 @@ export default function App() {
 
   const deleteAccount = (id: number) => {
     setAccounts(accounts.filter((account) => account.id !== id));
+    // If we were editing the account that was just deleted, reset the form
+    if (editingId === id) {
+      clearForm();
+    }
   };
 
   const confirmDelete = (account: Account) => {
@@ -126,7 +147,12 @@ export default function App() {
         keyboardType="numeric"
       />
 
-      <Button title="Save Account" onPress={addAccount} />
+      <Button
+        title={editingId === null ? 'Save Account' : 'Update Account'}
+        onPress={saveAccount}
+      />
+
+      {editingId !== null && <Button title="Cancel" onPress={clearForm} />}
 
       <View style={styles.list}>
         {sortedAccounts.map((account) => (
