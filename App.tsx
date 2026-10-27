@@ -4,6 +4,7 @@ import {
   Alert,
   Button,
   Platform,
+  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
@@ -18,7 +19,7 @@ import { formatMoney } from './src/utils/money';
 const cleanName = (text: string) => text.trim().replace(/\s+/g, ' ');
 
 export default function App() {
-    const [accounts, setAccounts] = useState<Account[]>([
+  const [accounts, setAccounts] = useState<Account[]>([
     { id: 1, name: 'Opay', accountNumber: '1111', balance: 150000 },
     { id: 2, name: 'GTBank', accountNumber: '2222', balance: 250000 },
     { id: 3, name: 'Kuda', accountNumber: '3333', balance: 50000 },
@@ -43,7 +44,7 @@ export default function App() {
     const name = cleanName(accountName);
     const number = accountNumber.trim();
 
-        if (!name || !accountBalance.trim()) {
+    if (!name || !accountBalance.trim()) {
       setFormError('Please enter an account name and balance.');
       return;
     }
@@ -67,7 +68,7 @@ export default function App() {
         account.accountNumber === number
     );
 
-       if (isDuplicate) {
+    if (isDuplicate) {
       setFormError('You already have an account with this name and number.');
       return;
     }
@@ -139,85 +140,109 @@ export default function App() {
   );
 
   return (
-    <ScrollView
-      style={styles.screen}
-      contentContainerStyle={styles.container}
-      keyboardShouldPersistTaps="handled"
-    >
-      <Text style={styles.heading}>SumWorth</Text>
-      <Text style={styles.tagline}>
-        Your money. Your worth. One clear picture.
-      </Text>
+    <SafeAreaView style={styles.screen}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        automaticallyAdjustKeyboardInsets
+      >
+        <View style={styles.content}>
+          <Text style={styles.heading}>SumWorth</Text>
+          <Text style={styles.tagline}>
+            Your money. Your worth. One clear picture.
+          </Text>
 
-      <Text style={styles.label}>TOTAL AVAILABLE MONEY</Text>
-      <Text style={styles.total}>
-        {balancesHidden ? '₦••••••' : formatMoney(totalAvailable)}
-      </Text>
+          <View style={styles.totalCard}>
+            <Text style={styles.label}>TOTAL AVAILABLE MONEY</Text>
+            <Text
+              style={styles.total}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+            >
+              {balancesHidden ? '₦••••••' : formatMoney(totalAvailable)}
+            </Text>
+            <Button
+              title={balancesHidden ? 'Show balances' : 'Hide balances'}
+              onPress={() => setBalancesHidden(!balancesHidden)}
+            />
+          </View>
 
-      <Button
-        title={balancesHidden ? 'Show balances' : 'Hide balances'}
-        onPress={() => setBalancesHidden(!balancesHidden)}
-      />
+          <View style={styles.formCard}>
+            <Text style={styles.sectionTitle}>
+              {editingId === null ? 'Add account' : 'Edit account'}
+            </Text>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Account name (e.g. FirstBank)"
-        placeholderTextColor="#6f9aa1"
-        value={accountName}
-        onChangeText={(text) => {
-          setAccountName(text);
-          setFormError('');
-        }}
-      />
+            <TextInput
+              style={styles.input}
+              placeholder="Account name (e.g. FirstBank)"
+              placeholderTextColor="#6f9aa1"
+              value={accountName}
+              onChangeText={(text) => {
+                setAccountName(text);
+                setFormError('');
+              }}
+            />
 
-      <TextInput
-        style={styles.input}
-        placeholder="Last 4 digits of account number"
-        placeholderTextColor="#6f9aa1"
-        value={accountNumber}
-        onChangeText={(text) => {
-          setAccountNumber(text);
-          setFormError('');
-        }}
-        keyboardType="numeric"
-        maxLength={4}
-      />
+            <TextInput
+              style={styles.input}
+              placeholder="Last 4 digits of account number"
+              placeholderTextColor="#6f9aa1"
+              value={accountNumber}
+              onChangeText={(text) => {
+                setAccountNumber(text);
+                setFormError('');
+              }}
+              keyboardType="numeric"
+              maxLength={4}
+            />
 
-      <TextInput
-        style={styles.input}
-        placeholder="Balance (e.g. 100000)"
-        placeholderTextColor="#6f9aa1"
-        value={accountBalance}
-        onChangeText={(text) => {
-          setAccountBalance(text);
-          setFormError('');
-        }}
-        keyboardType="numeric"
-      />
+            <TextInput
+              style={styles.input}
+              placeholder="Balance (e.g. 100000)"
+              placeholderTextColor="#6f9aa1"
+              value={accountBalance}
+              onChangeText={(text) => {
+                setAccountBalance(text);
+                setFormError('');
+              }}
+              keyboardType="numeric"
+            />
 
-      {formError !== '' && <Text style={styles.error}>{formError}</Text>}
+            {formError !== '' && <Text style={styles.error}>{formError}</Text>}
 
-      <Button
-        title={editingId === null ? 'Save Account' : 'Update Account'}
-        onPress={saveAccount}
-      />
+            <View style={styles.buttonRow}>
+              <Button
+                title={editingId === null ? 'Save Account' : 'Update Account'}
+                onPress={saveAccount}
+              />
+              {editingId !== null && (
+                <Button title="Cancel" onPress={clearForm} />
+              )}
+            </View>
+          </View>
 
-      {editingId !== null && <Button title="Cancel" onPress={clearForm} />}
+          <Text style={styles.sectionTitle}>My accounts</Text>
 
-      <View style={styles.list}>
-        {sortedAccounts.map((account) => (
-          <AccountRow
-            key={account.id}
-            account={account}
-            hidden={balancesHidden}
-            onEdit={() => startEdit(account)}
-            onDelete={() => confirmDelete(account)}
-          />
-        ))}
-      </View>
+          {sortedAccounts.length === 0 ? (
+            <Text style={styles.empty}>
+              No accounts yet. Add your first one above.
+            </Text>
+          ) : (
+            sortedAccounts.map((account) => (
+              <AccountRow
+                key={account.id}
+                account={account}
+                hidden={balancesHidden}
+                onEdit={() => startEdit(account)}
+                onDelete={() => confirmDelete(account)}
+              />
+            ))
+          )}
+        </View>
 
-      <StatusBar style="light" />
-    </ScrollView>
+        <StatusBar style="light" />
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
@@ -226,30 +251,61 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#012e36',
   },
-  container: {
-    flexGrow: 1,
+  scrollContent: {
     alignItems: 'center',
-    justifyContent: 'center',
-    padding: 24,
-    paddingTop: 60,
-    paddingBottom: 60,
+    paddingHorizontal: 20,
+    paddingTop: 24,
+    paddingBottom: 48,
   },
-  heading: { fontSize: 28, fontWeight: '600', color: '#ffffff' },
+  content: {
+    width: '100%',
+    maxWidth: 480,
+  },
+  heading: {
+    fontSize: 28,
+    fontWeight: '600',
+    color: '#ffffff',
+    textAlign: 'center',
+  },
   tagline: {
     marginTop: 8,
     fontSize: 16,
     color: '#9fc6cc',
     textAlign: 'center',
   },
+  totalCard: {
+    marginTop: 24,
+    padding: 20,
+    borderRadius: 16,
+    backgroundColor: '#0a3d47',
+    alignItems: 'center',
+  },
   label: {
-    marginTop: 40,
     fontSize: 12,
     letterSpacing: 1,
     color: '#9fc6cc',
   },
-  total: { marginTop: 4, fontSize: 40, fontWeight: '700', color: '#ffffff' },
+  total: {
+    marginVertical: 6,
+    maxWidth: '100%',
+    fontSize: 38,
+    fontWeight: '700',
+    color: '#ffffff',
+  },
+  formCard: {
+    marginTop: 20,
+    padding: 16,
+    borderRadius: 16,
+    backgroundColor: '#0a3d47',
+  },
+  sectionTitle: {
+    marginTop: 24,
+    marginBottom: 4,
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#ffffff',
+  },
   input: {
-    width: '100%',
     marginTop: 12,
     padding: 12,
     borderWidth: 1,
@@ -259,11 +315,19 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   error: {
-    width: '100%',
     marginTop: 12,
-    marginBottom: 4,
     fontSize: 14,
     color: '#ff8a80',
   },
-  list: { marginTop: 32, width: '100%' },
+  buttonRow: {
+    marginTop: 12,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 16,
+  },
+  empty: {
+    marginTop: 12,
+    fontSize: 14,
+    color: '#9fc6cc',
+  },
 });
