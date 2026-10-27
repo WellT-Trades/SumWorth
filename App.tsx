@@ -9,9 +9,11 @@ import {
   StyleSheet,
   Text,
   TextInput,
+  useColorScheme,
   View,
 } from 'react-native';
 import AccountRow from './src/components/AccountRow';
+import { Colors, darkColors, lightColors } from './src/theme';
 import { Account } from './src/types';
 import { formatMoney } from './src/utils/money';
 
@@ -31,6 +33,15 @@ export default function App() {
   const [balancesHidden, setBalancesHidden] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [formError, setFormError] = useState('');
+
+  // Theme: follow the phone, unless the user has tapped the toggle
+  const systemScheme = useColorScheme();
+  const [themeOverride, setThemeOverride] = useState<'light' | 'dark' | null>(
+    null
+  );
+  const scheme = themeOverride ?? systemScheme ?? 'dark';
+  const colors = scheme === 'dark' ? darkColors : lightColors;
+  const styles = createStyles(colors);
 
   const clearForm = () => {
     setEditingId(null);
@@ -152,6 +163,15 @@ export default function App() {
             Your money. Your worth. One clear picture.
           </Text>
 
+          <View style={styles.themeRow}>
+            <Button
+              title={scheme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+              onPress={() =>
+                setThemeOverride(scheme === 'dark' ? 'light' : 'dark')
+              }
+            />
+          </View>
+
           <View style={styles.totalCard}>
             <Text style={styles.label}>TOTAL AVAILABLE MONEY</Text>
             <Text
@@ -168,14 +188,14 @@ export default function App() {
           </View>
 
           <View style={styles.formCard}>
-            <Text style={styles.sectionTitle}>
+            <Text style={[styles.sectionTitle, { marginTop: 0 }]}>
               {editingId === null ? 'Add account' : 'Edit account'}
             </Text>
 
             <TextInput
               style={styles.input}
               placeholder="Account name (e.g. FirstBank)"
-              placeholderTextColor="#6f9aa1"
+              placeholderTextColor={colors.textFaint}
               value={accountName}
               onChangeText={(text) => {
                 setAccountName(text);
@@ -186,7 +206,7 @@ export default function App() {
             <TextInput
               style={styles.input}
               placeholder="Last 4 digits of account number"
-              placeholderTextColor="#6f9aa1"
+              placeholderTextColor={colors.textFaint}
               value={accountNumber}
               onChangeText={(text) => {
                 setAccountNumber(text);
@@ -199,7 +219,7 @@ export default function App() {
             <TextInput
               style={styles.input}
               placeholder="Balance (e.g. 100000)"
-              placeholderTextColor="#6f9aa1"
+              placeholderTextColor={colors.textFaint}
               value={accountBalance}
               onChangeText={(text) => {
                 setAccountBalance(text);
@@ -233,6 +253,7 @@ export default function App() {
                 key={account.id}
                 account={account}
                 hidden={balancesHidden}
+                colors={colors}
                 onEdit={() => startEdit(account)}
                 onDelete={() => confirmDelete(account)}
               />
@@ -240,94 +261,104 @@ export default function App() {
           )}
         </View>
 
-        <StatusBar style="light" />
+        <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: '#012e36',
-  },
-  scrollContent: {
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 24,
-    paddingBottom: 48,
-  },
-  content: {
-    width: '100%',
-    maxWidth: 480,
-  },
-  heading: {
-    fontSize: 28,
-    fontWeight: '600',
-    color: '#ffffff',
-    textAlign: 'center',
-  },
-  tagline: {
-    marginTop: 8,
-    fontSize: 16,
-    color: '#9fc6cc',
-    textAlign: 'center',
-  },
-  totalCard: {
-    marginTop: 24,
-    padding: 20,
-    borderRadius: 16,
-    backgroundColor: '#0a3d47',
-    alignItems: 'center',
-  },
-  label: {
-    fontSize: 12,
-    letterSpacing: 1,
-    color: '#9fc6cc',
-  },
-  total: {
-    marginVertical: 6,
-    maxWidth: '100%',
-    fontSize: 38,
-    fontWeight: '700',
-    color: '#ffffff',
-  },
-  formCard: {
-    marginTop: 20,
-    padding: 16,
-    borderRadius: 16,
-    backgroundColor: '#0a3d47',
-  },
-  sectionTitle: {
-    marginTop: 24,
-    marginBottom: 4,
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#ffffff',
-  },
-  input: {
-    marginTop: 12,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: '#1f4a52',
-    borderRadius: 8,
-    color: '#ffffff',
-    fontSize: 16,
-  },
-  error: {
-    marginTop: 12,
-    fontSize: 14,
-    color: '#ff8a80',
-  },
-  buttonRow: {
-    marginTop: 12,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 16,
-  },
-  empty: {
-    marginTop: 12,
-    fontSize: 14,
-    color: '#9fc6cc',
-  },
-});
+const createStyles = (colors: Colors) =>
+  StyleSheet.create({
+    screen: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    scrollContent: {
+      alignItems: 'center',
+      paddingHorizontal: 20,
+      paddingTop: 24,
+      paddingBottom: 48,
+    },
+    content: {
+      width: '100%',
+      maxWidth: 480,
+    },
+    heading: {
+      fontSize: 28,
+      fontWeight: '600',
+      color: colors.text,
+      textAlign: 'center',
+    },
+    tagline: {
+      marginTop: 8,
+      fontSize: 16,
+      color: colors.textMuted,
+      textAlign: 'center',
+    },
+    themeRow: {
+      marginTop: 8,
+      alignItems: 'center',
+    },
+    totalCard: {
+      marginTop: 16,
+      padding: 20,
+      borderRadius: 16,
+      backgroundColor: colors.card,
+      borderWidth: 1,
+      borderColor: colors.border,
+      alignItems: 'center',
+    },
+    label: {
+      fontSize: 12,
+      letterSpacing: 1,
+      color: colors.textMuted,
+    },
+    total: {
+      marginVertical: 6,
+      maxWidth: '100%',
+      fontSize: 38,
+      fontWeight: '700',
+      color: colors.text,
+    },
+    formCard: {
+      marginTop: 20,
+      padding: 16,
+      borderRadius: 16,
+      backgroundColor: colors.card,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    sectionTitle: {
+      marginTop: 24,
+      marginBottom: 4,
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.text,
+    },
+    input: {
+      marginTop: 12,
+      padding: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 8,
+      color: colors.text,
+      fontSize: 16,
+    },
+    error: {
+      marginTop: 12,
+      fontSize: 14,
+      color: colors.danger,
+    },
+    buttonRow: {
+      marginTop: 12,
+      flexDirection: 'row',
+      justifyContent: 'center',
+      gap: 16,
+    },
+    empty: {
+      marginTop: 12,
+      fontSize: 14,
+      color: colors.textMuted,
+    },
+  });
+  
