@@ -12,7 +12,12 @@ type Props = {
 export default function AccountRow({ account, hidden, onEdit, onDelete }: Props) {
   return (
     <View style={styles.row}>
-      <Text style={styles.name}>{account.name}</Text>
+      <View>
+        <Text style={styles.name}>{account.name}</Text>
+        {account.accountNumber !== '' && (
+          <Text style={styles.number}>••••{account.accountNumber}</Text>
+        )}
+      </View>
       <View style={styles.right}>
         <Text style={styles.balance}>
           {hidden ? '₦••••••' : formatMoney(account.balance)}
@@ -39,6 +44,7 @@ const styles = StyleSheet.create({
   },
   right: { flexDirection: 'row', alignItems: 'center', gap: 14 },
   name: { fontSize: 16, color: '#ffffff' },
+  number: { fontSize: 12, color: '#6f9aa1', marginTop: 2 },
   balance: { fontSize: 16, color: '#ffffff' },
   edit: { fontSize: 14, color: '#9fc6cc' },
   delete: { fontSize: 14, color: '#ff8a80' },
