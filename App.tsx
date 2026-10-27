@@ -16,12 +16,13 @@ import { formatMoney } from './src/utils/money';
 
 export default function App() {
   const [accounts, setAccounts] = useState<Account[]>([
-    { id: 1, name: 'Opay', balance: 150000 },
-    { id: 2, name: 'GTBank', balance: 250000 },
-    { id: 3, name: 'Kuda', balance: 50000 },
-    { id: 4, name: 'UBA', balance: 70000 },
+    { id: 1, name: 'Opay', accountNumber: '', balance: 150000 },
+    { id: 2, name: 'GTBank', accountNumber: '', balance: 250000 },
+    { id: 3, name: 'Kuda', accountNumber: '', balance: 50000 },
+    { id: 4, name: 'UBA', accountNumber: '', balance: 70000 },
   ]);
   const [accountName, setAccountName] = useState('');
+  const [accountNumber, setAccountNumber] = useState('');
   const [accountBalance, setAccountBalance] = useState('');
   const [balancesHidden, setBalancesHidden] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -29,12 +30,20 @@ export default function App() {
   const clearForm = () => {
     setEditingId(null);
     setAccountName('');
+    setAccountNumber('');
     setAccountBalance('');
   };
 
   const saveAccount = () => {
     if (!accountName.trim() || !accountBalance.trim()) {
       alert('Please enter an account name and balance.');
+      return;
+    }
+
+    const number = accountNumber.trim();
+
+    if (number !== '' && !/^\d{4}$/.test(number)) {
+      alert('Account number must be exactly 4 digits, or left blank.');
       return;
     }
 
@@ -46,19 +55,23 @@ export default function App() {
     }
 
     if (editingId !== null) {
-      // Editing: replace the matching account, keep all the others
       setAccounts(
         accounts.map((account) =>
           account.id === editingId
-            ? { ...account, name: accountName.trim(), balance }
+            ? {
+                ...account,
+                name: accountName.trim(),
+                accountNumber: number,
+                balance,
+              }
             : account
         )
       );
     } else {
-      // Adding: append a new account
       const newAccount: Account = {
         id: Date.now(),
         name: accountName.trim(),
+        accountNumber: number,
         balance,
       };
       setAccounts([...accounts, newAccount]);
@@ -70,12 +83,12 @@ export default function App() {
   const startEdit = (account: Account) => {
     setEditingId(account.id);
     setAccountName(account.name);
+    setAccountNumber(account.accountNumber);
     setAccountBalance(String(account.balance));
   };
 
   const deleteAccount = (id: number) => {
     setAccounts(accounts.filter((account) => account.id !== id));
-    // If we were editing the account that was just deleted, reset the form
     if (editingId === id) {
       clearForm();
     }
@@ -105,8 +118,10 @@ export default function App() {
     0
   );
 
-  const sortedAccounts = [...accounts].sort((a, b) =>
-    a.name.localeCompare(b.name)
+  const sortedAccounts = [...accounts].sort(
+    (a, b) =>
+      a.name.localeCompare(b.name) ||
+      a.accountNumber.localeCompare(b.accountNumber)
   );
 
   return (
@@ -136,6 +151,16 @@ export default function App() {
         placeholderTextColor="#6f9aa1"
         value={accountName}
         onChangeText={setAccountName}
+      />
+
+      <TextInput
+        style={styles.input}
+        placeholder="Last 4 digits of account number (optional)"
+        placeholderTextColor="#6f9aa1"
+        value={accountNumber}
+        onChangeText={setAccountNumber}
+        keyboardType="numeric"
+        maxLength={4}
       />
 
       <TextInput
