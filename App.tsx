@@ -1,6 +1,15 @@
 import { useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { Button, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import {
+  Alert,
+  Button,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import AccountRow from './src/components/AccountRow';
 import { Account } from './src/types';
 import { formatMoney } from './src/utils/money';
@@ -40,6 +49,29 @@ export default function App() {
     setAccountBalance('');
   };
 
+  const deleteAccount = (id: number) => {
+    setAccounts(accounts.filter((account) => account.id !== id));
+  };
+
+  const confirmDelete = (account: Account) => {
+    const message = `Delete ${account.name}? This cannot be undone.`;
+
+    if (Platform.OS === 'web') {
+      if (window.confirm(message)) {
+        deleteAccount(account.id);
+      }
+    } else {
+      Alert.alert(`Delete ${account.name}?`, 'This cannot be undone.', [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => deleteAccount(account.id),
+        },
+      ]);
+    }
+  };
+
   const totalAvailable = accounts.reduce(
     (sum, account) => sum + account.balance,
     0
@@ -49,7 +81,7 @@ export default function App() {
     a.name.localeCompare(b.name)
   );
 
-    return (
+  return (
     <ScrollView
       style={styles.screen}
       contentContainerStyle={styles.container}
@@ -95,6 +127,7 @@ export default function App() {
             key={account.id}
             account={account}
             hidden={balancesHidden}
+            onDelete={() => confirmDelete(account)}
           />
         ))}
       </View>
@@ -105,7 +138,7 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-    screen: {
+  screen: {
     flex: 1,
     backgroundColor: '#012e36',
   },
