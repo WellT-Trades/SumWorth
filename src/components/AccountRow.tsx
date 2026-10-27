@@ -5,10 +5,11 @@ import { formatMoney } from '../utils/money';
 type Props = {
   account: Account;
   hidden: boolean;
+  onEdit: () => void;
   onDelete: () => void;
 };
 
-export default function AccountRow({ account, hidden, onDelete }: Props) {
+export default function AccountRow({ account, hidden, onEdit, onDelete }: Props) {
   return (
     <View style={styles.row}>
       <Text style={styles.name}>{account.name}</Text>
@@ -16,6 +17,9 @@ export default function AccountRow({ account, hidden, onDelete }: Props) {
         <Text style={styles.balance}>
           {hidden ? '₦••••••' : formatMoney(account.balance)}
         </Text>
+        <Pressable onPress={onEdit} hitSlop={8}>
+          <Text style={styles.edit}>Edit</Text>
+        </Pressable>
         <Pressable onPress={onDelete} hitSlop={8}>
           <Text style={styles.delete}>Delete</Text>
         </Pressable>
@@ -33,8 +37,9 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#1f4a52',
   },
-  right: { flexDirection: 'row', alignItems: 'center', gap: 16 },
+  right: { flexDirection: 'row', alignItems: 'center', gap: 14 },
   name: { fontSize: 16, color: '#ffffff' },
   balance: { fontSize: 16, color: '#ffffff' },
+  edit: { fontSize: 14, color: '#9fc6cc' },
   delete: { fontSize: 14, color: '#ff8a80' },
 });
