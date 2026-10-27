@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { Button, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Button, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import AccountRow from './src/components/AccountRow';
 import { Account } from './src/types';
 import { formatMoney } from './src/utils/money';
@@ -14,9 +14,9 @@ export default function App() {
   ]);
   const [accountName, setAccountName] = useState('');
   const [accountBalance, setAccountBalance] = useState('');
+  const [balancesHidden, setBalancesHidden] = useState(false);
 
   const addAccount = () => {
-    // 1. Check the input first
     if (!accountName.trim() || !accountBalance.trim()) {
       alert('Please enter an account name and balance.');
       return;
@@ -29,7 +29,6 @@ export default function App() {
       return;
     }
 
-    // 2. Only then build the account, with the name trimmed
     const newAccount: Account = {
       id: Date.now(),
       name: accountName.trim(),
@@ -45,19 +44,31 @@ export default function App() {
     (sum, account) => sum + account.balance,
     0
   );
-  const sortedAccounts = [...accounts].sort((a, b) =>
-  a.name.localeCompare(b.name)
-);
 
-  return (
-    <View style={styles.container}>
+  const sortedAccounts = [...accounts].sort((a, b) =>
+    a.name.localeCompare(b.name)
+  );
+
+    return (
+    <ScrollView
+      style={styles.screen}
+      contentContainerStyle={styles.container}
+      keyboardShouldPersistTaps="handled"
+    >
       <Text style={styles.heading}>SumWorth</Text>
       <Text style={styles.tagline}>
         Your money. Your worth. One clear picture.
       </Text>
 
       <Text style={styles.label}>TOTAL AVAILABLE MONEY</Text>
-      <Text style={styles.total}>{formatMoney(totalAvailable)}</Text>
+      <Text style={styles.total}>
+        {balancesHidden ? '₦••••••' : formatMoney(totalAvailable)}
+      </Text>
+
+      <Button
+        title={balancesHidden ? 'Show balances' : 'Hide balances'}
+        onPress={() => setBalancesHidden(!balancesHidden)}
+      />
 
       <TextInput
         style={styles.input}
@@ -79,23 +90,32 @@ export default function App() {
       <Button title="Save Account" onPress={addAccount} />
 
       <View style={styles.list}>
-  {sortedAccounts.map((account) => (
-    <AccountRow key={account.id} account={account} />
-  ))}
-</View>
+        {sortedAccounts.map((account) => (
+          <AccountRow
+            key={account.id}
+            account={account}
+            hidden={balancesHidden}
+          />
+        ))}
+      </View>
 
       <StatusBar style="light" />
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+    screen: {
     flex: 1,
     backgroundColor: '#012e36',
+  },
+  container: {
+    flexGrow: 1,
     alignItems: 'center',
     justifyContent: 'center',
     padding: 24,
+    paddingTop: 60,
+    paddingBottom: 60,
   },
   heading: { fontSize: 28, fontWeight: '600', color: '#ffffff' },
   tagline: {
