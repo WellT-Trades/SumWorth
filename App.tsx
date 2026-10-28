@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { fetchAccounts } from './src/api';
 import { StatusBar } from 'expo-status-bar';
 import {
   Alert,
@@ -21,18 +22,35 @@ import { formatMoney } from './src/utils/money';
 const cleanName = (text: string) => text.trim().replace(/\s+/g, ' ');
 
 export default function App() {
-  const [accounts, setAccounts] = useState<Account[]>([
-    { id: 1, name: 'Opay', accountNumber: '1111', balance: 150000 },
-    { id: 2, name: 'GTBank', accountNumber: '2222', balance: 250000 },
-    { id: 3, name: 'Kuda', accountNumber: '3333', balance: 50000 },
-    { id: 4, name: 'UBA', accountNumber: '4444', balance: 70000 },
-  ]);
+    const [accounts, setAccounts] = useState<Account[]>([]);
+    
   const [accountName, setAccountName] = useState('');
   const [accountNumber, setAccountNumber] = useState('');
   const [accountBalance, setAccountBalance] = useState('');
   const [balancesHidden, setBalancesHidden] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [formError, setFormError] = useState('');
+
+    const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
+
+  const loadAccounts = async () => {
+    setLoading(true);
+    setLoadError('');
+    try {
+      setAccounts(await fetchAccounts());
+    } catch {
+      setLoadError(
+        "Couldn't reach the SumWorth server. Check that it's running and that you're on the same Wi-Fi."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadAccounts();
+  }, []);
 
   // Theme: follow the phone, unless the user has tapped the toggle
   const systemScheme = useColorScheme();
@@ -243,7 +261,14 @@ export default function App() {
 
           <Text style={styles.sectionTitle}>My accounts</Text>
 
-          {sortedAccounts.length === 0 ? (
+                    {loading ? (
+            <Text style={styles.empty}>Loading accounts...</Text>
+          ) : loadError !== '' ? (
+            <View>
+              <Text style={styles.error}>{loadError}</Text>
+              <Button title="Try again" onPress={loadAccounts} />
+            </View>
+          ) : sortedAccounts.length === 0 ? (
             <Text style={styles.empty}>
               No accounts yet. Add your first one above.
             </Text>
@@ -361,4 +386,3 @@ const createStyles = (colors: Colors) =>
       color: colors.textMuted,
     },
   });
-  
