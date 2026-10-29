@@ -33,6 +33,7 @@ export async function fetchAccounts(): Promise<Account[]> {
     clearTimeout(timer);
   }
 }
+
 export async function createAccount(input: {
   name: string;
   accountNumber: string;
