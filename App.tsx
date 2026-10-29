@@ -1,3 +1,4 @@
+import { createAccount, fetchAccounts } from './src/api';
 import { useEffect, useState } from 'react';
 import { fetchAccounts } from './src/api';
 import { StatusBar } from 'expo-status-bar';
@@ -67,7 +68,7 @@ export default function App() {
     setFormError('');
   };
 
-  const saveAccount = () => {
+  const saveAccount = async () => {
     const name = cleanName(accountName);
     const number = accountNumber.trim();
 
@@ -108,14 +109,20 @@ export default function App() {
             : account
         )
       );
-    } else {
-      const newAccount: Account = {
-        id: Date.now(),
-        name,
-        accountNumber: number,
-        balance,
-      };
-      setAccounts([...accounts, newAccount]);
+        } else {
+      try {
+        const created = await createAccount({
+          name,
+          accountNumber: number,
+          balance,
+        });
+        setAccounts([...accounts, created]);
+      } catch (e) {
+        setFormError(
+          e instanceof Error ? e.message : 'Could not save the account.'
+        );
+        return;
+      }
     }
 
     clearForm();
