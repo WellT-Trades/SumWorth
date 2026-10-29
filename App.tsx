@@ -39,10 +39,8 @@ export default function App() {
     setLoadError('');
     try {
       setAccounts(await fetchAccounts());
-    } catch {
-      setLoadError(
-        "Couldn't reach the SumWorth server. Check that it's running and that you're on the same Wi-Fi."
-      );
+        } catch (e) {
+      setLoadError(`Couldn't reach the SumWorth server. (${String(e)})`);
     } finally {
       setLoading(false);
     }
