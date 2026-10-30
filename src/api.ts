@@ -79,3 +79,30 @@ export async function removeAccount(id: number): Promise<void> {
     clearTimeout(timer);
   }
 }
+export async function updateAccount(
+  id: number,
+  input: { name: string; accountNumber: string; balance: number }
+): Promise<Account> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 8000);
+
+  try {
+    const response = await fetch(`${API_URL}/accounts/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: input.name,
+        account_number: input.accountNumber,
+        balance_kobo: Math.round(input.balance * 100),
+      }),
+      signal: controller.signal,
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error ?? `Server replied ${response.status}`);
+    }
+    return toAccount(data);
+  } finally {
+    clearTimeout(timer);
+  }
+}
