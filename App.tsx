@@ -1,4 +1,4 @@
-import { createAccount, fetchAccounts } from './src/api';
+import { createAccount, fetchAccounts, removeAccount } from './src/api';
 import { useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import {
@@ -135,14 +135,20 @@ export default function App() {
     setFormError('');
   };
 
-  const deleteAccount = (id: number) => {
-    setAccounts(accounts.filter((account) => account.id !== id));
+    const deleteAccount = async (id: number) => {
+    try {
+      await removeAccount(id);
+    } catch (e) {
+      alert(e instanceof Error ? e.message : 'Could not delete the account.');
+      return;
+    }
+    setAccounts((prev) => prev.filter((account) => account.id !== id));
     if (editingId === id) {
       clearForm();
     }
   };
 
-  const confirmDelete = (account: Account) => {
+    const confirmDelete = (account: Account) => {
     const message = `Delete ${account.name}? This cannot be undone.`;
 
     if (Platform.OS === 'web') {
