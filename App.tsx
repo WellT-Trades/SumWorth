@@ -1,6 +1,5 @@
 import { createAccount, fetchAccounts } from './src/api';
 import { useEffect, useState } from 'react';
-import { fetchAccounts } from './src/api';
 import { StatusBar } from 'expo-status-bar';
 import {
   Alert,
@@ -40,7 +39,7 @@ export default function App() {
     setLoadError('');
     try {
       setAccounts(await fetchAccounts());
-        } catch (e) {
+          } catch (e) {
       setLoadError(`Couldn't reach the SumWorth server. (${String(e)})`);
     } finally {
       setLoading(false);
@@ -116,7 +115,7 @@ export default function App() {
           accountNumber: number,
           balance,
         });
-        setAccounts([...accounts, created]);
+        setAccounts((prev) => [...prev, created]);
       } catch (e) {
         setFormError(
           e instanceof Error ? e.message : 'Could not save the account.'
