@@ -1,4 +1,9 @@
-import { createAccount, fetchAccounts, removeAccount } from './src/api';
+import {
+  createAccount,
+  fetchAccounts,
+  removeAccount,
+  updateAccount,
+} from './src/api';
 import { useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import {
@@ -100,15 +105,23 @@ export default function App() {
       return;
     }
 
-    if (editingId !== null) {
-      setAccounts(
-        accounts.map((account) =>
-          account.id === editingId
-            ? { ...account, name, accountNumber: number, balance }
-            : account
-        )
-      );
-        } else {
+        if (editingId !== null) {
+      try {
+        const updated = await updateAccount(editingId, {
+          name,
+          accountNumber: number,
+          balance,
+        });
+        setAccounts((prev) =>
+          prev.map((account) => (account.id === editingId ? updated : account))
+        );
+      } catch (e) {
+        setFormError(
+          e instanceof Error ? e.message : 'Could not update the account.'
+        );
+        return;
+      }
+    } else {
       try {
         const created = await createAccount({
           name,
