@@ -62,3 +62,20 @@ export async function createAccount(input: {
     clearTimeout(timer);
   }
 }
+export async function removeAccount(id: number): Promise<void> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 8000);
+
+  try {
+    const response = await fetch(`${API_URL}/accounts/${id}`, {
+      method: 'DELETE',
+      signal: controller.signal,
+    });
+    // 404 means it's already gone, which is what we wanted anyway
+    if (!response.ok && response.status !== 404) {
+      throw new Error(`Server replied ${response.status}`);
+    }
+  } finally {
+    clearTimeout(timer);
+  }
+}
