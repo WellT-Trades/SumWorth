@@ -133,3 +133,39 @@ export async function register(
   await authCall('/auth/register', email.trim(), password);
   return login(email, password);
 }
+async function postJson(path: string, body: object): Promise<any> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 8000);
+
+  try {
+    const response = await fetch(`${API_URL}${path}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error ?? `Server replied ${response.status}`);
+    }
+    return data;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+export async function forgotPassword(email: string): Promise<void> {
+  await postJson('/auth/forgot-password', { email: email.trim() });
+}
+
+export async function resetPassword(
+  email: string,
+  code: string,
+  newPassword: string
+): Promise<void> {
+  await postJson('/auth/reset-password', {
+    email: email.trim(),
+    code: code.trim(),
+    new_password: newPassword,
+  });
+}
