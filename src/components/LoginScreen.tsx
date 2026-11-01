@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import {
   Button,
+  Pressable,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -24,6 +25,7 @@ export default function LoginScreen({ colors, onLoggedIn }: Props) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const submit = async () => {
     if (!email.trim() || !password) {
@@ -82,19 +84,30 @@ export default function LoginScreen({ colors, onLoggedIn }: Props) {
               keyboardType="email-address"
             />
 
-            <TextInput
-              style={styles.input}
-              placeholder="Password"
-              placeholderTextColor={colors.textFaint}
-              value={password}
-              onChangeText={(text) => {
-                setPassword(text);
-                setError('');
-              }}
-              secureTextEntry
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
+            <View style={styles.passwordRow}>
+              <TextInput
+                style={[styles.input, styles.passwordInput]}
+                placeholder="Password"
+                placeholderTextColor={colors.textFaint}
+                value={password}
+                onChangeText={(text) => {
+                  setPassword(text);
+                  setError('');
+                }}
+                secureTextEntry={!showPassword}
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+              <Pressable
+                onPress={() => setShowPassword(!showPassword)}
+                hitSlop={8}
+                style={styles.toggle}
+              >
+                <Text style={styles.toggleText}>
+                  {showPassword ? 'Hide' : 'Show'}
+                </Text>
+              </Pressable>
+            </View>
 
             {error !== '' && <Text style={styles.error}>{error}</Text>}
 
@@ -172,7 +185,20 @@ const createStyles = (colors: Colors) =>
       color: colors.text,
       fontSize: 16,
     },
+    input: {
+      marginTop: 12,
+      padding: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 8,
+      color: colors.text,
+      fontSize: 16,
+    },
+    passwordRow: { justifyContent: 'center' },
+    passwordInput: { paddingRight: 64 },
+    toggle: { position: 'absolute', right: 12, top: 24 },
+    toggleText: { fontSize: 14, color: colors.textMuted },
     error: { marginTop: 12, fontSize: 14, color: colors.danger },
     buttonRow: { marginTop: 12, alignItems: 'center' },
   });
-  
+
