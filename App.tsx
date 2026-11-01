@@ -2,8 +2,11 @@ import {
   createAccount,
   fetchAccounts,
   removeAccount,
+  UnauthorizedError,
   updateAccount,
 } from './src/api';
+import LoginScreen from './src/components/LoginScreen';
+import { clearToken, getToken } from './src/tokenStorage';
 import { useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import {
@@ -36,20 +39,40 @@ export default function App() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [formError, setFormError] = useState('');
 
-    const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
+    // null = still checking for a stored token
+  const [authed, setAuthed] = useState<boolean | null>(null);
 
   const loadAccounts = async () => {
     setLoading(true);
     setLoadError('');
     try {
       setAccounts(await fetchAccounts());
-          } catch (e) {
+    } catch (e) {
+      if (e instanceof UnauthorizedError) {
+        await clearToken();
+        setAccounts([]);
+        setAuthed(false);
+        return;
+      }
       setLoadError(`Couldn't reach the SumWorth server. (${String(e)})`);
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    getToken().then((token) => {
+      if (token) {
+        setAuthed(true);
+        loadAccounts();
+      } else {
+        setAuthed(false);
+        setLoading(false);
+      }
+    });
+  }, []);
 
   useEffect(() => {
     loadAccounts();
@@ -70,6 +93,21 @@ export default function App() {
     setAccountNumber('');
     setAccountBalance('');
     setFormError('');
+  };
+    const logout = async () => {
+    await clearToken();
+    setAccounts([]);
+    clearForm();
+    setAuthed(false);
+  };
+
+  // If the server says our session is invalid, go back to login.
+  const handleAuthError = (e: unknown) => {
+    if (e instanceof UnauthorizedError) {
+      logout();
+      return true;
+    }
+    return false;
   };
 
   const saveAccount = async () => {
@@ -116,6 +154,7 @@ export default function App() {
           prev.map((account) => (account.id === editingId ? updated : account))
         );
       } catch (e) {
+                if (handleAuthError(e)) return;
         setFormError(
           e instanceof Error ? e.message : 'Could not update the account.'
         );
@@ -130,6 +169,7 @@ export default function App() {
         });
         setAccounts((prev) => [...prev, created]);
       } catch (e) {
+                if (handleAuthError(e)) return;
         setFormError(
           e instanceof Error ? e.message : 'Could not save the account.'
         );
@@ -148,10 +188,11 @@ export default function App() {
     setFormError('');
   };
 
-    const deleteAccount = async (id: number) => {
+      const deleteAccount = async (id: number) => {
     try {
       await removeAccount(id);
     } catch (e) {
+      if (handleAuthError(e)) return;
       alert(e instanceof Error ? e.message : 'Could not delete the account.');
       return;
     }
@@ -191,6 +232,22 @@ export default function App() {
       a.accountNumber.localeCompare(b.accountNumber)
   );
 
+    if (authed === null) {
+    return <SafeAreaView style={styles.screen} />;
+  }
+
+  if (authed === false) {
+    return (
+      <LoginScreen
+        colors={colors}
+        onLoggedIn={() => {
+          setAuthed(true);
+          loadAccounts();
+        }}
+      />
+    );
+  }
+  
   return (
     <SafeAreaView style={styles.screen}>
       <ScrollView
@@ -211,6 +268,7 @@ export default function App() {
                 setThemeOverride(scheme === 'dark' ? 'light' : 'dark')
               }
             />
+            <Button title="Log out" onPress={logout} />
           </View>
 
           <View style={styles.totalCard}>
